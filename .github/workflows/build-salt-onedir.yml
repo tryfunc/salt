@@ -18,6 +18,11 @@ on:
         type: string
         description: Seed used to invalidate caches
 
+env:
+  PIP_INDEX_URL: https://pypi-proxy.saltstack.net/root/local/+simple/
+  PIP_EXTRA_INDEX_URL: https://pypi.org/simple
+  RELENV_DATA: "${{ github.workspace }}/.relenv"
+
 jobs:
 
   build-salt-linux:

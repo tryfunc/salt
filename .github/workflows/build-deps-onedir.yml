@@ -18,6 +18,11 @@ on:
         type: string
         description: Seed used to invalidate caches
 
+env:
+  PIP_INDEX_URL: https://pypi-proxy.saltstack.net/root/local/+simple/
+  PIP_EXTRA_INDEX_URL: https://pypi.org/simple
+  RELENV_DATA: "${{ github.workspace }}/.relenv"
+
 jobs:
 
   build-deps-linux:
@@ -42,6 +47,15 @@ jobs:
           platform: linux
           arch: ${{ matrix.arch }}
           cache-seed: ${{ inputs.cache-seed }}
+
+      - name: Build 3.11
+        run: |
+          sudo apt install -y build-essential bison python3-all patchelf
+          RELENV_PATH=$(python3 -c 'import sys, pathlib, relenv; sys.stdout.write(str(pathlib.Path(relenv.__file__).parent))')
+          find $RELENV_PATH -type f -exec sed -i 's/3\.10\.9/3.11.1/g' {} \;
+          find $RELENV_PATH -type f -exec sed -i 's/python3\.10/python3.11/g' {} \;
+          find $RELENV_PATH -type f -exec sed -i 's/config-3\.10/config-3.11/g' {} \;
+          python3 -m relenv build --arch=${{ matrix.arch }}
 
       - name: Setup Python Tools Scripts
         uses: ./.github/actions/setup-python-tools-scripts
@@ -80,6 +94,18 @@ jobs:
           arch: ${{ matrix.arch }}
           cache-seed: ${{ inputs.cache-seed }}
 
+      - name: Setup Build 3.11
+        shell: bash
+        run: |
+          RELENV_PATH=$(python3 -c 'import sys, pathlib, relenv; sys.stdout.write(str(pathlib.Path(relenv.__file__).parent))')
+          find $RELENV_PATH -type f -exec sed -i 's/3\.10\.9/3.11.1/g' {} \;
+          find $RELENV_PATH -type f -exec sed -i 's/python3\.10/python3.11/g' {} \;
+          find $RELENV_PATH -type f -exec sed -i 's/config-3\.10/config-3.11/g' {} \;
+
+      - name: Build 3.11
+        run: |
+          python3 -m relenv build --arch=${{ matrix.arch }}
+
       - name: Setup Python Tools Scripts
         uses: ./.github/actions/setup-python-tools-scripts
 
@@ -115,6 +141,17 @@ jobs:
           platform: darwin
           arch: ${{ matrix.arch }}
           cache-seed: ${{ inputs.cache-seed }}
+
+      - name: Build 3.11
+        run: |
+          brew uninstall --ignore-dependencies gettext
+          brew install gnu-sed
+          RELENV_PATH=$(python3 -c 'import sys, pathlib, relenv; sys.stdout.write(str(pathlib.Path(relenv.__file__).parent))')
+          find $RELENV_PATH -type f -exec gnu-sed -i 's/3\.10\.9/3.11.1/g' {} \;
+          find $RELENV_PATH -type f -exec gnu-sed -i 's/python3\.10/python3.11/g' {} \;
+          find $RELENV_PATH -type f -exec gnu-sed -i 's/config-3\.10/config-3.11/g' {} \;
+          python3 -m relenv build --arch=${{ matrix.arch }}
+          brew install gettext
 
       - name: Setup Python Tools Scripts
         uses: ./.github/actions/setup-python-tools-scripts
