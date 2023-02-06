@@ -985,8 +985,13 @@ def urlencoded_processor(entity):
             unserialized_data["kwarg"]
         )
     if "arg" in unserialized_data:
-        for idx, value in enumerate(unserialized_data["arg"]):
-            unserialized_data["arg"][idx] = salt.utils.args.yamlify_arg(value)
+        if isinstance(unserialized_data["arg"], list):
+            for idx, value in enumerate(unserialized_data["arg"]):
+                unserialized_data["arg"][idx] = salt.utils.args.yamlify_arg(value)
+        else:
+            unserialized_data["arg"] = [
+                salt.utils.args.yamlify_arg(unserialized_data["arg"])
+            ]
     cherrypy.serving.request.unserialized_data = unserialized_data
 
 
@@ -1898,6 +1903,8 @@ class Login(LowDataAdapter):
             eauth = self.opts.get("external_auth", {}).get(token["eauth"], {})
 
             if token["eauth"] == "django" and "^model" in eauth:
+                perms = token["auth_list"]
+            elif token["eauth"] == "rest" and "auth_list" in token:
                 perms = token["auth_list"]
             else:
                 perms = salt.netapi.sum_permissions(token, eauth)

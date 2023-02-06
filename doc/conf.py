@@ -55,9 +55,13 @@ on_saltstack = "SALT_ON_SALTSTACK" in os.environ
 project = "Salt"
 # This is the default branch on GitHub for the Salt project
 repo_primary_branch = "master"
+major_version = str(salt.version.__saltstack_version__.major)
+latest_release = major_version
+if salt.version.__saltstack_version__.can_have_dot_zero(major_version):
+    latest_release = ".".join([str(x) for x in salt.version.__saltstack_version__.info])
 latest_release = (
     # Use next unreleased version if LATEST_RELEASE is undefined env var
-    os.environ.get("LATEST_RELEASE", str(salt.version.__saltstack_version__.major))
+    os.environ.get("LATEST_RELEASE", latest_release)
 )  # latest release (3003)
 previous_release = os.environ.get(
     "PREVIOUS_RELEASE", "previous_release"
@@ -165,7 +169,10 @@ autosummary_generate = True
 autosummary_generate_overwrite = False
 
 # In case building docs throws import errors, please add the top level package name below
-autodoc_mock_imports = []
+autodoc_mock_imports = [
+    "cherrypy",
+    "xmltodict",
+]
 
 # strip git rev as there won't necessarily be a release based on it
 stripped_release = re.sub(r"-\d+-g[0-9a-f]+$", "", release)
@@ -201,11 +208,11 @@ rst_prolog = """\
 extlinks = {
     "blob": (
         "https://github.com/saltstack/salt/blob/%s/%%s" % repo_primary_branch,
-        None,
+        "%s",
     ),
-    "issue": ("https://github.com/saltstack/salt/issues/%s", "issue #"),
-    "pull": ("https://github.com/saltstack/salt/pull/%s", "PR #"),
-    "formula_url": ("https://github.com/saltstack-formulas/%s", ""),
+    "issue": ("https://github.com/saltstack/salt/issues/%s", "issue %s"),
+    "pull": ("https://github.com/saltstack/salt/pull/%s", "PR %s"),
+    "formula_url": ("https://github.com/saltstack-formulas/%s", "url %s"),
 }
 
 
